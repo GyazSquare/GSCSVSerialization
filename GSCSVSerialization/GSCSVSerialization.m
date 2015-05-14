@@ -147,7 +147,7 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     return (records && __GSCSVIsValidCSVRecords(records, NULL));
 }
 
-+ (NSData *)dataWithCSVRecords:(NSArray *)records encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)error {
++ (NSData *)dataWithCSVRecords:(NSArray *)records encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)outError {
     if (!records) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: records parameter is nil", __PRETTY_FUNCTION__];
     }
@@ -158,7 +158,7 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     NSOutputStream *stream = [[NSOutputStream alloc] initToMemory];
     [stream open];
     NSData *data;
-    if ([self writeCSVRecords:records toStream:stream encoding:encoding options:opt error:error] > 0) {
+    if ([self writeCSVRecords:records toStream:stream encoding:encoding options:opt error:outError] > 0) {
         data = [stream propertyForKey:NSStreamDataWrittenToMemoryStreamKey];
     } else {
         data = nil;
@@ -167,7 +167,7 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     return data;
 }
 
-+ (NSInteger)writeCSVRecords:(NSArray *)records toStream:(NSOutputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)error {
++ (NSInteger)writeCSVRecords:(NSArray *)records toStream:(NSOutputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)outError {
     if (!records) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: records parameter is nil", __PRETTY_FUNCTION__];
     }
@@ -224,7 +224,7 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     }
 }
 
-+ (NSArray *)CSVRecordsWithStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)error {
++ (NSArray *)CSVRecordsWithStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)outError {
     if (!stream) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: stream parameter is nil", __PRETTY_FUNCTION__];
     }
@@ -233,19 +233,19 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     }
     void *bytes = NULL;
     NSUInteger length = 0;
-    NSError *underlyingError = nil;
-    if (!__GSCSVConvertInputStreamToBytes(stream, &bytes, &length, &underlyingError)) {
-        if (error) {
+    NSError *error = nil;
+    if (!__GSCSVConvertInputStreamToBytes(stream, &bytes, &length, &error)) {
+        if (outError) {
             NSDictionary *userInfo = nil;
-            if (underlyingError) {
-                userInfo = @{NSUnderlyingErrorKey: underlyingError};
+            if (error) {
+                userInfo = @{NSUnderlyingErrorKey: error};
             }
-            *error = [NSError errorWithDomain:GSCSVErrorDomain code:GSCSVErrorReadStreamError userInfo:userInfo];
+            *outError = [NSError errorWithDomain:GSCSVErrorDomain code:GSCSVErrorReadStreamError userInfo:userInfo];
         }
         return nil;
     }
     NSData *data = [[NSData alloc] initWithBytesNoCopy:bytes length:length];
-    return [self CSVRecordsWithData:data encoding:encoding options:opt error:error];
+    return [self CSVRecordsWithData:data encoding:encoding options:opt error:outError];
 }
 
 @end
