@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D790164E1B08CF2F009433C5 /* GSCSVSerializationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D790164D1B08CF2F009433C5 /* GSCSVSerializationTests.m */; };
 		D7B2F4A11B0442F000C877F6 /* GSCSVSerialization.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D7B2F4A01B0442F000C877F6 /* GSCSVSerialization.h */; };
 		D7B2F4A31B0442F000C877F6 /* GSCSVSerialization.m in Sources */ = {isa = PBXBuildFile; fileRef = D7B2F4A21B0442F000C877F6 /* GSCSVSerialization.m */; };
 		D7B2F4A91B0442F000C877F6 /* libGSCSVSerialization.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D7B2F49D1B0442F000C877F6 /* libGSCSVSerialization.a */; };
@@ -36,6 +37,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D790164D1B08CF2F009433C5 /* GSCSVSerializationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSCSVSerializationTests.m; sourceTree = "<group>"; };
 		D7B2F49D1B0442F000C877F6 /* libGSCSVSerialization.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGSCSVSerialization.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7B2F4A01B0442F000C877F6 /* GSCSVSerialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GSCSVSerialization.h; sourceTree = "<group>"; };
 		D7B2F4A21B0442F000C877F6 /* GSCSVSerialization.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GSCSVSerialization.m; sourceTree = "<group>"; };
@@ -92,6 +94,7 @@
 		D7B2F4AC1B0442F000C877F6 /* GSCSVSerializationTests */ = {
 			isa = PBXGroup;
 			children = (
+				D790164D1B08CF2F009433C5 /* GSCSVSerializationTests.m */,
 				D7B2F4AD1B0442F000C877F6 /* Supporting Files */,
 			);
 			path = GSCSVSerializationTests;
@@ -200,6 +203,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D790164E1B08CF2F009433C5 /* GSCSVSerializationTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -361,6 +365,7 @@
 				D7B2F4B31B0442F000C877F6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D7B2F4B41B0442F000C877F6 /* Build configuration list for PBXNativeTarget "GSCSVSerializationTests" */ = {
 			isa = XCConfigurationList;
@@ -369,6 +374,7 @@
 				D7B2F4B61B0442F000C877F6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

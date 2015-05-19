@@ -13,7 +13,8 @@ FOUNDATION_EXPORT NSString * const GSCSVErrorDomain;
 typedef NS_ENUM(NSInteger, GSCSVErrorCode) {
     GSCSVErrorUnknown = 0,
     GSCSVErrorReadInapplicableStringEncodingError = 1,
-    GSCSVErrorReadStreamError = 2
+    GSCSVErrorReadCorrupt = 2,
+    GSCSVErrorReadStreamError = 3
 };
 
 typedef NS_ENUM(NSUInteger, GSCSVReadingOptions) {
