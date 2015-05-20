@@ -61,6 +61,223 @@
     }
 }
 
+- (void)testDataWithCSVRecords {
+    // nil records
+    {
+        NSArray *records = nil;
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        XCTAssertThrowsSpecificNamed([GSCSVSerialization dataWithCSVRecords:records encoding:encoding options:opt error:&error], NSException, NSInvalidArgumentException);
+    }
+    // invalid records
+    {
+        NSArray *records = @[@[]];
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        XCTAssertThrowsSpecificNamed([GSCSVSerialization dataWithCSVRecords:records encoding:encoding options:opt error:&error], NSException, NSInvalidArgumentException);
+    }
+    // wrong encoding
+    {
+        NSArray *records = @[@[@"aaａ", @"bbb", @"ccc"], @[@"zzz", @"yyy", @"xxx"]];
+        NSStringEncoding encoding = NSASCIIStringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        NSData *data = [GSCSVSerialization dataWithCSVRecords:records encoding:encoding options:opt error:&error];
+        XCTAssertNil(data);
+        XCTAssertEqualObjects(GSCSVErrorDomain, error.domain);
+        XCTAssertEqual(GSCSVErrorWriteInapplicableStringEncodingError, error.code);
+    }
+    // empty records
+    {
+        NSArray *records = @[@[@""]];
+        NSData *expected = [NSData data];
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        NSData *data = [GSCSVSerialization dataWithCSVRecords:records encoding:encoding options:opt error:&error];
+        XCTAssertEqualObjects(expected, data);
+        XCTAssertNil(error);
+    }
+    // correct records
+    {
+        NSArray *records = @[@[@"aaa", @"bbb", @"ccc"], @[@"zzz", @"yyy", @"xxx"]];
+        NSData *expected = [@"aaa,bbb,ccc\r\nzzz,yyy,xxx" dataUsingEncoding:NSUTF8StringEncoding];
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        NSData *data = [GSCSVSerialization dataWithCSVRecords:records encoding:encoding options:opt error:&error];
+        XCTAssertEqualObjects(expected, data);
+        XCTAssertNil(error);
+    }
+}
+
+- (void)testWriteCSVRecords {
+    // nil records
+    {
+        NSArray *records = nil;
+        NSOutputStream *stream = nil;
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        XCTAssertThrowsSpecificNamed([GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error], NSException, NSInvalidArgumentException);
+    }
+    // invalid records
+    {
+        NSArray *records = @[@[]];
+        NSOutputStream *stream = nil;
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        XCTAssertThrowsSpecificNamed([GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error], NSException, NSInvalidArgumentException);
+    }
+    // nil stream
+    {
+        NSArray *records = @[@[@""]];
+        NSOutputStream *stream = nil;
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        XCTAssertThrowsSpecificNamed([GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error], NSException, NSInvalidArgumentException);
+    }
+    // closed stream
+    {
+        NSArray *records = @[@[@""]];
+        NSOutputStream *stream = [[NSOutputStream alloc] initToMemory];
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        XCTAssertThrowsSpecificNamed([GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error], NSException, NSInvalidArgumentException);
+    }
+    // wrong encoding
+    {
+        NSArray *records = @[@[@"aaａ", @"bbb", @"ccc"], @[@"zzz", @"yyy", @"xxx"]];
+        NSOutputStream *stream = [[NSOutputStream alloc] initToMemory];
+        NSStringEncoding encoding = NSASCIIStringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        [stream open];
+        NSInteger result = [GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error];
+        [stream close];
+        XCTAssertTrue(result < 0);
+        XCTAssertEqualObjects(GSCSVErrorDomain, error.domain);
+        XCTAssertEqual(GSCSVErrorWriteInapplicableStringEncodingError, error.code);
+    }
+    // empty records
+    {
+        NSArray *records = @[@[@""]];
+        NSData *expected = [NSData data];
+        NSOutputStream *stream = [[NSOutputStream alloc] initToMemory];
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        [stream open];
+        NSInteger result = [GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error];
+        NSData *data = [stream propertyForKey:NSStreamDataWrittenToMemoryStreamKey];
+        [stream close];
+        XCTAssertEqual(0, result);
+        XCTAssertNil(error);
+        XCTAssertEqualObjects(expected, data);
+    }
+    // 2.1, 2.2 of RFC 4180
+    {
+        NSArray *records = @[@[@"aaa", @"bbb", @"ccc"], @[@"zzz", @"yyy", @"xxx"]];
+        NSData *expected = [@"aaa,bbb,ccc\r\nzzz,yyy,xxx" dataUsingEncoding:NSUTF8StringEncoding];
+        NSOutputStream *stream = [[NSOutputStream alloc] initToMemory];
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        [stream open];
+        NSInteger result = [GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error];
+        NSData *data = [stream propertyForKey:NSStreamDataWrittenToMemoryStreamKey];
+        [stream close];
+        XCTAssertTrue(result > 0);
+        XCTAssertNil(error);
+        XCTAssertEqualObjects(expected, data);
+    }
+    // 2.3 of RFC 4180
+    {
+        NSArray *records = @[@[@"field_name", @"field_name", @"field_name"], @[@"aaa", @"bbb", @"ccc"], @[@"zzz", @"yyy", @"xxx"]];
+        NSData *expected = [@"field_name,field_name,field_name\r\naaa,bbb,ccc\r\nzzz,yyy,xxx" dataUsingEncoding:NSUTF8StringEncoding];
+        NSOutputStream *stream = [[NSOutputStream alloc] initToMemory];
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        [stream open];
+        NSInteger result = [GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error];
+        NSData *data = [stream propertyForKey:NSStreamDataWrittenToMemoryStreamKey];
+        [stream close];
+        XCTAssertTrue(result > 0);
+        XCTAssertNil(error);
+        XCTAssertEqualObjects(expected, data);
+    }
+    // 2.4 of RFC 4180
+    {
+        NSArray *records = @[@[@"aaa", @"bbb", @"ccc"]];
+        NSData *expected = [@"aaa,bbb,ccc" dataUsingEncoding:NSUTF8StringEncoding];
+        NSOutputStream *stream = [[NSOutputStream alloc] initToMemory];
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        [stream open];
+        NSInteger result = [GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error];
+        NSData *data = [stream propertyForKey:NSStreamDataWrittenToMemoryStreamKey];
+        [stream close];
+        XCTAssertTrue(result > 0);
+        XCTAssertNil(error);
+        XCTAssertEqualObjects(expected, data);
+    }
+    // 2.5 of RFC 4180
+    {
+        NSArray *records = @[@[@"aaa", @"bbb", @"ccc"], @[@"zzz", @"yyy", @"xxx"]];
+        NSData *expected = [@"\"aaa\",\"bbb\",\"ccc\"\r\n\"zzz\",\"yyy\",\"xxx\"" dataUsingEncoding:NSUTF8StringEncoding];
+        NSOutputStream *stream = [[NSOutputStream alloc] initToMemory];
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = GSCSVWritingEscapeAllFields;
+        NSError *error = nil;
+        [stream open];
+        NSInteger result = [GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error];
+        NSData *data = [stream propertyForKey:NSStreamDataWrittenToMemoryStreamKey];
+        [stream close];
+        XCTAssertTrue(result > 0);
+        XCTAssertNil(error);
+        XCTAssertEqualObjects(expected, data);
+    }
+    // 2.6 of RFC 4180
+    {
+        NSArray *records = @[@[@"aaa", @"b\r\nbb", @"ccc"], @[@"zzz", @"yyy", @"xxx"]];
+        NSData *expected = [@"aaa,\"b\r\nbb\",ccc\r\nzzz,yyy,xxx" dataUsingEncoding:NSUTF8StringEncoding];
+        NSOutputStream *stream = [[NSOutputStream alloc] initToMemory];
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        [stream open];
+        NSInteger result = [GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error];
+        NSData *data = [stream propertyForKey:NSStreamDataWrittenToMemoryStreamKey];
+        [stream close];
+        XCTAssertTrue(result > 0);
+        XCTAssertNil(error);
+        XCTAssertEqualObjects(expected, data);
+    }
+    // 2.7 of RFC 4180
+    {
+        NSArray *records = @[@[@"aaa", @"b\"bb", @"ccc"]];
+        NSData *expected = [@"aaa,\"b\"\"bb\",ccc" dataUsingEncoding:NSUTF8StringEncoding];
+        NSOutputStream *stream = [[NSOutputStream alloc] initToMemory];
+        NSStringEncoding encoding = NSUTF8StringEncoding;
+        GSCSVWritingOptions opt = 0;
+        NSError *error = nil;
+        [stream open];
+        NSInteger result = [GSCSVSerialization writeCSVRecords:records toStream:stream encoding:encoding options:opt error:&error];
+        NSData *data = [stream propertyForKey:NSStreamDataWrittenToMemoryStreamKey];
+        [stream close];
+        XCTAssertTrue(result > 0);
+        XCTAssertNil(error);
+        XCTAssertEqualObjects(expected, data);
+    }
+}
+
 - (void)testCSVRecordsWithData {
     // nil data
     {
@@ -233,8 +450,8 @@
         NSString *string = @"aaa,bbb,ccc\r\nzzz,yyy,xxx\r\n";
         NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
         NSInputStream *stream = [[NSInputStream alloc] initWithData:data];
-        [stream open];
         NSError *error = nil;
+        [stream open];
         NSArray *records = [GSCSVSerialization CSVRecordsWithStream:stream encoding:NSUTF8StringEncoding options:0 error:&error];
         [stream close];
         NSArray *expected = @[@[@"aaa", @"bbb", @"ccc"], @[@"zzz", @"yyy", @"xxx"]];

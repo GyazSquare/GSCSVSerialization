@@ -14,7 +14,9 @@ typedef NS_ENUM(NSInteger, GSCSVErrorCode) {
     GSCSVErrorUnknown = 0,
     GSCSVErrorReadInapplicableStringEncodingError = 1,
     GSCSVErrorReadCorrupt = 2,
-    GSCSVErrorReadStreamError = 3
+    GSCSVErrorReadStreamError = 3,
+    GSCSVErrorWriteInapplicableStringEncodingError = 4,
+    GSCSVErrorWriteStreamError = 5
 };
 
 typedef NS_ENUM(NSUInteger, GSCSVReadingOptions) {
@@ -22,7 +24,9 @@ typedef NS_ENUM(NSUInteger, GSCSVReadingOptions) {
     GSCSVReadingMutableLeaves = (1UL << 1)
 };
 
-typedef NSUInteger GSCSVWritingOptions;
+typedef NS_ENUM(NSUInteger, GSCSVWritingOptions) {
+    GSCSVWritingEscapeAllFields = (1UL << 0)
+};
 
 @interface GSCSVSerialization : NSObject
 

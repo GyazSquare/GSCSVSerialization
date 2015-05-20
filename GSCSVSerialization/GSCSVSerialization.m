@@ -7,11 +7,14 @@
 
 #import "GSCSVSerialization.h"
 
-#define kDQUOTE @"\x22"
-#define kCOMMA  @"\x2C"
-#define kCR     @"\x0D"
-#define kLF     @"\x0A"
-#define kCRLF   @"\x0D\x0A"
+#define kDQUOTE         @"\x22"
+#define k2DQUOTE        @"\x22\x22"
+#define kCOMMA          @"\x2C"
+#define kCR             @"\x0D"
+#define kLF             @"\x0A"
+#define kCRLF           @"\x0D\x0A"
+#define kFieldSeparator @"\x2C\x0D\x0A"
+#define kNonTextData    @"\x2C\x0D\x0A\x22"
 
 #define kDQUOTECharacter 0x22
 
@@ -58,6 +61,119 @@ static BOOL __GSCSVIsValidCSVRecords(NSArray *records, NSString **errorString) {
     return YES;
 }
 
+static BOOL __GSCSVShouldEscapeField(NSString *field) {
+    static NSCharacterSet *nonTextDataCharacterSet = nil;
+    static dispatch_once_t onceToken = 0;
+    dispatch_once(&onceToken, ^{
+        nonTextDataCharacterSet = [NSCharacterSet characterSetWithCharactersInString:kNonTextData];
+    });
+    return ([field rangeOfCharacterFromSet:nonTextDataCharacterSet options:NSLiteralSearch].location != NSNotFound);
+}
+
+static NSString * __GSCSVEscapeField(NSString *field) {
+    NSMutableString *escaped = [NSMutableString new];
+    [escaped appendString:kDQUOTE];
+    NSRange searchRange = NSMakeRange(0, field.length);
+    while (searchRange.location < field.length) {
+        NSRange doubleQuoteRange = [field rangeOfString:kDQUOTE options:NSLiteralSearch range:searchRange];
+        if (doubleQuoteRange.location == NSNotFound) {
+            [escaped appendString:[field substringWithRange:searchRange]];
+            break;
+        }
+        NSRange range = NSMakeRange(searchRange.location, doubleQuoteRange.location - searchRange.location);
+        [escaped appendString:[field substringWithRange:range]];
+        [escaped appendString:k2DQUOTE];
+        searchRange = NSMakeRange(NSMaxRange(doubleQuoteRange), field.length - NSMaxRange(doubleQuoteRange));
+    }
+    [escaped appendString:kDQUOTE];
+    return escaped;
+}
+
+static NSInteger __GSCSVWriteRecord(NSOutputStream *stream, NSArray *fields, NSStringEncoding encoding, GSCSVWritingOptions opt, NSError **outError) {
+    NSUInteger fieldCount = fields.count;
+    NSInteger result = 0;
+    for (NSUInteger i = 0; i < fieldCount; i++) {
+        if (i > 0) {
+            const char *comma = ",";
+            size_t commaLength = strlen(comma);
+            NSInteger bytesWritten = [stream write:(uint8_t *)comma maxLength:commaLength];
+            if (bytesWritten <= 0) {
+                if (outError) {
+                    NSError *error;
+                    if (bytesWritten < 0) {
+                        error = stream.streamError;
+                    } else {
+                        error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EPIPE userInfo:nil];
+                    }
+                    NSDictionary *userInfo = @{NSUnderlyingErrorKey: error};
+                    *outError = [NSError errorWithDomain:GSCSVErrorDomain code:GSCSVErrorWriteStreamError userInfo:userInfo];
+                }
+                return -1;
+            } else {
+                result += bytesWritten;
+            }
+        }
+        NSString *field = fields[i];
+        if (field.length == 0) {
+            continue;
+        }
+        if ((opt & GSCSVWritingEscapeAllFields)
+            || __GSCSVShouldEscapeField(field)) {
+            field = __GSCSVEscapeField(field);
+        }
+        NSUInteger maxLength = [field maximumLengthOfBytesUsingEncoding:encoding];
+        char buffer[maxLength];
+        NSUInteger usedLength = 0;
+        NSRange remainingRange = NSMakeRange(NSNotFound, 0);
+        if (![field getBytes:buffer maxLength:maxLength usedLength:&usedLength encoding:encoding options:0 range:NSMakeRange(0, field.length) remainingRange:&remainingRange] || remainingRange.length != 0) {
+            if (outError) {
+                NSString *description = [NSString stringWithFormat:NSLocalizedString(@"The string couldn’t be converted to the text encoding %@.", @""), [NSString localizedNameOfStringEncoding:encoding]];
+                NSDictionary *userInfo = @{NSLocalizedDescriptionKey: description, NSStringEncodingErrorKey: @(encoding)};
+                *outError = [NSError errorWithDomain:GSCSVErrorDomain code:GSCSVErrorWriteInapplicableStringEncodingError userInfo:userInfo];
+            }
+            return -1;
+        }
+        NSInteger bytesWritten = [stream write:(uint8_t *)buffer maxLength:usedLength];
+        if (bytesWritten <= 0) {
+            if (outError) {
+                NSError *error;
+                if (bytesWritten < 0) {
+                    error = stream.streamError;
+                } else {
+                    error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EPIPE userInfo:nil];
+                }
+                NSDictionary *userInfo = @{NSUnderlyingErrorKey: error};
+                *outError = [NSError errorWithDomain:GSCSVErrorDomain code:GSCSVErrorWriteStreamError userInfo:userInfo];
+            }
+            return -1;
+        } else {
+            result += bytesWritten;
+        }
+    }
+    return result;
+}
+
+static NSInteger __GSCSVWriteLineBreak(NSOutputStream *stream, NSError **outError) {
+    const char *lineBreak = "\r\n";
+    size_t lineBreakLength = strlen(lineBreak);
+    NSInteger bytesWritten = [stream write:(uint8_t *)lineBreak maxLength:lineBreakLength];
+    if (bytesWritten <= 0) {
+        if (outError) {
+            NSError *error;
+            if (bytesWritten < 0) {
+                error = stream.streamError;
+            } else {
+                error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EPIPE userInfo:nil];
+            }
+            NSDictionary *userInfo = @{NSUnderlyingErrorKey: error};
+            *outError = [NSError errorWithDomain:GSCSVErrorDomain code:GSCSVErrorWriteStreamError userInfo:userInfo];
+        }
+        return -1;
+    } else {
+        return bytesWritten;
+    }
+}
+
 static BOOL __GSCSVScanEscaped(NSScanner *scanner, GSCSVReadingOptions opt, NSString **outEscaped, NSError **outError) {
     NSUInteger startLocation = scanner.scanLocation;
     if (![scanner scanString:kDQUOTE intoString:NULL]) {
@@ -98,10 +214,10 @@ static BOOL __GSCSVScanEscaped(NSScanner *scanner, GSCSVReadingOptions opt, NSSt
 }
 
 static BOOL __GSCSVScanNonEscaped(NSScanner *scanner, GSCSVReadingOptions opt, NSString **outNonEscaped, NSError **outError) {
-    static NSCharacterSet *fieldSeparatorCharacterSet = nil; // CR / LF / COMMA
+    static NSCharacterSet *fieldSeparatorCharacterSet = nil;
     static dispatch_once_t onceToken = 0;
     dispatch_once(&onceToken, ^{
-        fieldSeparatorCharacterSet = [NSCharacterSet characterSetWithCharactersInString:@"\x2C\x0D\x0A"];
+        fieldSeparatorCharacterSet = [NSCharacterSet characterSetWithCharactersInString:kFieldSeparator];
     });
     NSString *result = @"";
     [scanner scanUpToCharactersFromSet:fieldSeparatorCharacterSet intoString:&result];
@@ -181,7 +297,7 @@ static BOOL __GSCSVConvertInputStreamToBytes(NSInputStream *stream, void **bytes
                 }
                 buflen = 0;
                 if (error) {
-                    *error = [stream streamError];
+                    *error = stream.streamError;
                 }
             }
             if (bytes) {
@@ -230,7 +346,7 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     NSOutputStream *stream = [[NSOutputStream alloc] initToMemory];
     [stream open];
     NSData *data;
-    if ([self writeCSVRecords:records toStream:stream encoding:encoding options:opt error:outError] > 0) {
+    if ([self writeCSVRecords:records toStream:stream encoding:encoding options:opt error:outError] >= 0) {
         data = [stream propertyForKey:NSStreamDataWrittenToMemoryStreamKey];
     } else {
         data = nil;
@@ -250,11 +366,37 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     if (!stream) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: stream parameter is nil", __PRETTY_FUNCTION__];
     }
-    if ([stream streamStatus] != NSStreamStatusOpen && [stream streamStatus] == NSStreamStatusWriting) {
+    if ((stream.streamStatus != NSStreamStatusOpen)
+        && (stream.streamStatus != NSStreamStatusWriting)) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: stream is not open for writing", __PRETTY_FUNCTION__];
     }
-    // TODO
-    return 0;
+    NSInteger result = 0;
+    for (NSUInteger i = 0; i < records.count; i++) {
+        if (i > 0) {
+            NSError *error = nil;
+            NSInteger bytesWritten = __GSCSVWriteLineBreak(stream, &error);
+            if (bytesWritten < 0) {
+                if (outError) {
+                    *outError = error;
+                }
+                return -1;
+            } else {
+                result += bytesWritten;
+            }
+        }
+        NSArray *fields = records[i];
+        NSError *error = nil;
+        NSInteger bytesWritten = __GSCSVWriteRecord(stream, fields, encoding, opt, &error);
+        if (bytesWritten < 0) {
+            if (outError) {
+                *outError = error;
+            }
+            return -1;
+        } else {
+            result += bytesWritten;
+        }
+    }
+    return result;
 }
 
 + (NSArray *)CSVRecordsWithData:(NSData *)data encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)outError {
@@ -309,7 +451,8 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     if (!stream) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: stream parameter is nil", __PRETTY_FUNCTION__];
     }
-    if ([stream streamStatus] != NSStreamStatusOpen && [stream streamStatus] == NSStreamStatusReading) {
+    if ((stream.streamStatus != NSStreamStatusOpen)
+        && ([stream streamStatus] != NSStreamStatusReading)) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: stream is not open for reading", __PRETTY_FUNCTION__];
     }
     void *bytes = NULL;
