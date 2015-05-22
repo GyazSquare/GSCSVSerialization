@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D77E1BE11B0DD5AB00EA2EAA /* KEN_ALL.CSV in Resources */ = {isa = PBXBuildFile; fileRef = D77E1BE01B0DD5AB00EA2EAA /* KEN_ALL.CSV */; };
 		D790164E1B08CF2F009433C5 /* GSCSVSerializationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D790164D1B08CF2F009433C5 /* GSCSVSerializationTests.m */; };
 		D7B2F4A11B0442F000C877F6 /* GSCSVSerialization.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D7B2F4A01B0442F000C877F6 /* GSCSVSerialization.h */; };
 		D7B2F4A31B0442F000C877F6 /* GSCSVSerialization.m in Sources */ = {isa = PBXBuildFile; fileRef = D7B2F4A21B0442F000C877F6 /* GSCSVSerialization.m */; };
@@ -37,6 +38,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D77E1BE01B0DD5AB00EA2EAA /* KEN_ALL.CSV */ = {isa = PBXFileReference; fileEncoding = 8; lastKnownFileType = text; path = KEN_ALL.CSV; sourceTree = "<group>"; };
 		D790164D1B08CF2F009433C5 /* GSCSVSerializationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSCSVSerializationTests.m; sourceTree = "<group>"; };
 		D7B2F49D1B0442F000C877F6 /* libGSCSVSerialization.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGSCSVSerialization.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7B2F4A01B0442F000C877F6 /* GSCSVSerialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GSCSVSerialization.h; sourceTree = "<group>"; };
@@ -104,6 +106,7 @@
 			isa = PBXGroup;
 			children = (
 				D7B2F4AE1B0442F000C877F6 /* Info.plist */,
+				D77E1BE01B0DD5AB00EA2EAA /* KEN_ALL.CSV */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -185,6 +188,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D77E1BE11B0DD5AB00EA2EAA /* KEN_ALL.CSV in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

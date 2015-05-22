@@ -70,7 +70,7 @@ static BOOL __GSCSVShouldEscapeField(NSString *field) {
     return ([field rangeOfCharacterFromSet:nonTextDataCharacterSet options:NSLiteralSearch].location != NSNotFound);
 }
 
-static NSString * __GSCSVEscapeField(NSString *field) {
+static NSString * __GSCSVCopyEscapedField(NSString *field) NS_RETURNS_RETAINED {
     NSMutableString *escaped = [NSMutableString new];
     [escaped appendString:kDQUOTE];
     NSRange searchRange = NSMakeRange(0, field.length);
@@ -119,7 +119,7 @@ static NSInteger __GSCSVWriteRecord(NSOutputStream *stream, NSArray *fields, NSS
         }
         if ((opt & GSCSVWritingEscapeAllFields)
             || __GSCSVShouldEscapeField(field)) {
-            field = __GSCSVEscapeField(field);
+            field = __GSCSVCopyEscapedField(field);
         }
         NSUInteger maxLength = [field maximumLengthOfBytesUsingEncoding:encoding];
         char buffer[maxLength];
@@ -232,7 +232,7 @@ static BOOL __GSCSVScanNonEscaped(NSScanner *scanner, GSCSVReadingOptions opt, N
 }
 
 static BOOL __GSCSVScanField(NSScanner *scanner, GSCSVReadingOptions opt, NSString **outField, NSError **outError) {
-    if ([scanner isAtEnd]) {
+    if (scanner.atEnd) {
         if (outField) {
             if (opt & GSCSVReadingMutableLeaves) {
                 *outField = [NSMutableString new];
@@ -242,7 +242,7 @@ static BOOL __GSCSVScanField(NSScanner *scanner, GSCSVReadingOptions opt, NSStri
         }
         return YES;
     } else {
-        unichar c = [[scanner string] characterAtIndex:[scanner scanLocation]];
+        unichar c = [scanner.string characterAtIndex:scanner.scanLocation];
         if (c == kDQUOTECharacter) {
             return __GSCSVScanEscaped(scanner, opt, outField, outError);
         } else {
@@ -251,7 +251,7 @@ static BOOL __GSCSVScanField(NSScanner *scanner, GSCSVReadingOptions opt, NSStri
     }
 }
 
-static BOOL __GSCSVScanRecord(NSScanner *scanner, GSCSVReadingOptions opt, NSArray **outRecord, NSError **outError) {
+static BOOL __GSCSVScanRecord(NSScanner *scanner, GSCSVReadingOptions opt, NSArray **outFields, NSError **outError) {
     NSMutableArray *fields = [NSMutableArray new];
     NSString *field = nil;
     NSError *error = nil;
@@ -267,11 +267,11 @@ static BOOL __GSCSVScanRecord(NSScanner *scanner, GSCSVReadingOptions opt, NSArr
         }
         return NO;
     } else {
-        if (outRecord) {
+        if (outFields) {
             if (opt & GSCSVReadingMutableContainers) {
-                *outRecord = fields;
+                *outFields = fields;
             } else {
-                *outRecord = [fields copy];
+                *outFields = [fields copy];
             }
         }
         return YES;
@@ -413,26 +413,27 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
         return nil;
     }
     NSScanner *scanner = [[NSScanner alloc] initWithString:string];
-    [scanner setCharactersToBeSkipped:nil];
+    scanner.charactersToBeSkipped = nil;
     NSMutableArray *records = [NSMutableArray new];
-    NSArray *record = nil;
     NSError *error = nil;
-    while (__GSCSVScanRecord(scanner, opt, &record, &error)) {
-        [records addObject:record];
-        if (!__GSCSVScanLineBreak(scanner, NULL)) {
-            if (![scanner isAtEnd]) {
-                NSString *description = NSLocalizedString(@"The data couldn’t be read because it isn’t in the correct format.", @"");
-                NSString *debugDescription = NSLocalizedString(@"Garbage at end.", @"");
-                NSDictionary *userInfo = @{NSLocalizedDescriptionKey: description, @"NSDebugDescription": debugDescription};
-                error = [NSError errorWithDomain:GSCSVErrorDomain code:GSCSVErrorReadCorrupt userInfo:userInfo];
+    do {
+        @autoreleasepool {
+            NSArray *fields = nil;
+            if (!__GSCSVScanRecord(scanner, opt, &fields, &error)) {
+                break;
             }
-            break;
-        } else {
-            if ([scanner isAtEnd]) {
+            [records addObject:fields];
+            if (!__GSCSVScanLineBreak(scanner, NULL)) {
+                if (!scanner.atEnd) {
+                    NSString *description = NSLocalizedString(@"The data couldn’t be read because it isn’t in the correct format.", @"");
+                    NSString *debugDescription = NSLocalizedString(@"Garbage at end.", @"");
+                    NSDictionary *userInfo = @{NSLocalizedDescriptionKey: description, @"NSDebugDescription": debugDescription};
+                    error = [NSError errorWithDomain:GSCSVErrorDomain code:GSCSVErrorReadCorrupt userInfo:userInfo];
+                }
                 break;
             }
         }
-    }
+    } while (!scanner.atEnd);
     if (error) {
         if (outError) {
             *outError = error;

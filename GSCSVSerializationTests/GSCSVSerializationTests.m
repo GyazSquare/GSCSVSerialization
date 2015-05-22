@@ -460,4 +460,41 @@
     }
 }
 
+#if 0
+- (void)testPerformanceCSVRecordsWithData {
+    NSString *path = [[[NSBundle bundleForClass:[self class]] resourcePath] stringByAppendingPathComponent:@"KEN_ALL.CSV"];
+    NSData *data = [NSData dataWithContentsOfFile:path];
+    NSStringEncoding encoding = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingDOSJapanese);
+    [self measureBlock:^{
+        NSError *error = nil;
+        NSArray *records = [GSCSVSerialization CSVRecordsWithData:data encoding:encoding options:0 error:&error];
+        if (!records) {
+            NSLog(@"%@", error);
+        }
+    }];
+}
+#endif
+
+#if 0
+- (void)testPerformanceDataWithCSVRecords {
+    NSString *path = [[[NSBundle bundleForClass:[self class]] resourcePath] stringByAppendingPathComponent:@"KEN_ALL.CSV"];
+    NSData *data = [NSData dataWithContentsOfFile:path];
+    NSStringEncoding encoding = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingDOSJapanese);
+    NSError *error = nil;
+    NSArray *records = [GSCSVSerialization CSVRecordsWithData:data encoding:encoding options:0 error:&error];
+    if (!records) {
+        NSLog(@"%@", error);
+        return;
+    }
+    [self measureBlock:^{
+        NSError *error = nil;
+        NSData *data = [GSCSVSerialization dataWithCSVRecords:records encoding:encoding options:0 error:&error];
+        if (!data) {
+            NSLog(@"%@", error);
+            return;
+        }
+    }];
+}
+#endif
+
 @end
