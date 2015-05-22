@@ -7,7 +7,8 @@ GSCSVSerialization is an Objective-C CSV parser for iOS and OS X.
 ## Requirements
 
 * Xcode 6.3 or later
-* iOS 8.3 SDK / OS X 10.10 SDK or later
+* Base SDK: iOS 8.3 / OS X 10.10 or later
+* Deployment Target: iOS 5.0 / OS X 10.6 or later
 
 ## Installation
 
