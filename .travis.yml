@@ -1,0 +1,4 @@
+language: objective-c
+xcode_project: GSCSVSerialization.xcodeproj
+xcode_scheme: GSCSVSerialization
+xcode_sdk: iphonesimulator
