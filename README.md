@@ -40,7 +40,7 @@ $ git clone https://github.com/GyazSquare/GSCSVSerialization.git
 
 ### Creating a CSV Object
 
-A GSCSVSerialization can create a CSV object from a [RFC 4180](https://tools.ietf.org/html/rfc4180)-compliant CSV data by using the following methods:
+GSCSVSerialization can create a CSV object from a [RFC 4180](https://tools.ietf.org/html/rfc4180)-compliant CSV data by using the following methods:
 
 ```objective-c
 + (NSArray *)CSVRecordsWithData:(NSData *)data encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)error;
@@ -65,7 +65,7 @@ you can get a CSV object like this:
 
 ### Creating CSV Data
 
-A GSCSVSerialization can create CSV data from a CSV object by using the following methods:
+GSCSVSerialization can create CSV data from a CSV object by using the following methods:
 
 ```objective-c
 + (NSData *)dataWithCSVRecords:(NSArray *)records encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)error;
