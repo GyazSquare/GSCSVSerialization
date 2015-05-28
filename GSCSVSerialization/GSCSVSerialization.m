@@ -331,11 +331,11 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
 
 @implementation GSCSVSerialization
 
-+ (BOOL)isValidCSVRecords:(NSArray *)records {
++ (BOOL)isValidCSVRecords:(nullable NSArray *)records {
     return __GSCSVIsValidCSVRecords(records, NULL);
 }
 
-+ (NSData *)dataWithCSVRecords:(NSArray *)records encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)outError {
++ (nullable NSData *)dataWithCSVRecords:(NSArray *)records encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)outError {
     if (!records) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: records parameter is nil", __PRETTY_FUNCTION__];
     }
@@ -399,7 +399,7 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     return result;
 }
 
-+ (NSArray *)CSVRecordsWithData:(NSData *)data encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)outError {
++ (nullable NSArray *)CSVRecordsWithData:(NSData *)data encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)outError {
     if (!data) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: data parameter is nil", __PRETTY_FUNCTION__];
     }
@@ -448,7 +448,7 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     }
 }
 
-+ (NSArray *)CSVRecordsWithStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)outError {
++ (nullable NSArray *)CSVRecordsWithStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)outError {
     if (!stream) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: stream parameter is nil", __PRETTY_FUNCTION__];
     }
