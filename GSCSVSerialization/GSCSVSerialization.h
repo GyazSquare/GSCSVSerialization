@@ -6,6 +6,8 @@
 @import Foundation.NSObject;
 @import Foundation.NSString;
 
+NS_ASSUME_NONNULL_BEGIN
+
 @class NSArray, NSData, NSError, NSInputStream, NSOutputStream;
 
 FOUNDATION_EXPORT NSString * const GSCSVErrorDomain;
@@ -30,12 +32,14 @@ typedef NS_ENUM(NSUInteger, GSCSVWritingOptions) {
 
 @interface GSCSVSerialization : NSObject
 
-+ (BOOL)isValidCSVRecords:(NSArray *)records;
++ (BOOL)isValidCSVRecords:(nullable NSArray *)records;
 
-+ (NSData *)dataWithCSVRecords:(NSArray *)records encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)error;
++ (nullable NSData *)dataWithCSVRecords:(NSArray *)records encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)error;
 + (NSInteger)writeCSVRecords:(NSArray *)records toStream:(NSOutputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)error;
 
-+ (NSArray *)CSVRecordsWithData:(NSData *)data encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)error;
-+ (NSArray *)CSVRecordsWithStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)error;
++ (nullable NSArray *)CSVRecordsWithData:(NSData *)data encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)error;
++ (nullable NSArray *)CSVRecordsWithStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)error;
 
 @end
+
+NS_ASSUME_NONNULL_END
