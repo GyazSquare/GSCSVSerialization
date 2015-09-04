@@ -21,12 +21,12 @@ typedef NS_ENUM(NSInteger, GSCSVErrorCode) {
     GSCSVErrorWriteStreamError = 5
 };
 
-typedef NS_ENUM(NSUInteger, GSCSVReadingOptions) {
+typedef NS_OPTIONS(NSUInteger, GSCSVReadingOptions) {
     GSCSVReadingMutableContainers = (1UL << 0),
     GSCSVReadingMutableLeaves = (1UL << 1)
 };
 
-typedef NS_ENUM(NSUInteger, GSCSVWritingOptions) {
+typedef NS_OPTIONS(NSUInteger, GSCSVWritingOptions) {
     GSCSVWritingEscapeAllFields = (1UL << 0)
 };
 
