@@ -18,7 +18,7 @@
 
 #define kDQUOTECharacter 0x22
 
-static BOOL __GSCSVIsValidCSVRecords(NSArray *records, NSString **errorString) {
+static BOOL __GSCSVIsValidCSVRecords(NSArray<NSArray<NSString *> *> *records, NSString **errorString) {
     if (records.count == 0) {
         if (errorString) {
             *errorString = @"records count is zero";
@@ -26,7 +26,7 @@ static BOOL __GSCSVIsValidCSVRecords(NSArray *records, NSString **errorString) {
         return NO;
     }
     NSUInteger fieldCount = 0;
-    for (NSArray *fields in records) {
+    for (NSArray<NSString *> *fields in records) {
         if (![fields isKindOfClass:[NSArray class]]) {
             if (errorString) {
                 *errorString = [NSString stringWithFormat:@"invalid record type (%@)", [fields class]];
@@ -89,7 +89,7 @@ static NSString * __GSCSVCopyEscapedField(NSString *field) NS_RETURNS_RETAINED {
     return escaped;
 }
 
-static NSInteger __GSCSVWriteRecord(NSOutputStream *stream, NSArray *fields, NSStringEncoding encoding, GSCSVWritingOptions opt, NSError **outError) {
+static NSInteger __GSCSVWriteRecord(NSOutputStream *stream, NSArray<NSString *> *fields, NSStringEncoding encoding, GSCSVWritingOptions opt, NSError **outError) {
     NSUInteger fieldCount = fields.count;
     NSInteger result = 0;
     for (NSUInteger i = 0; i < fieldCount; i++) {
@@ -251,8 +251,8 @@ static BOOL __GSCSVScanField(NSScanner *scanner, GSCSVReadingOptions opt, NSStri
     }
 }
 
-static BOOL __GSCSVScanRecord(NSScanner *scanner, GSCSVReadingOptions opt, NSArray **outFields, NSError **outError) {
-    NSMutableArray *fields = [NSMutableArray new];
+static BOOL __GSCSVScanRecord(NSScanner *scanner, GSCSVReadingOptions opt, NSArray<NSString *> **outFields, NSError **outError) {
+    NSMutableArray<NSString *> *fields = [NSMutableArray new];
     NSString *field = nil;
     NSError *error = nil;
     while (__GSCSVScanField(scanner, opt, &field, &error)) {
@@ -331,11 +331,11 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
 
 @implementation GSCSVSerialization
 
-+ (BOOL)isValidCSVRecords:(nullable NSArray *)records {
++ (BOOL)isValidCSVRecords:(nullable NSArray<NSArray<NSString *> *> *)records {
     return __GSCSVIsValidCSVRecords(records, NULL);
 }
 
-+ (nullable NSData *)dataWithCSVRecords:(NSArray *)records encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)outError {
++ (nullable NSData *)dataWithCSVRecords:(NSArray<NSArray<NSString *> *> *)records encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)outError {
     if (!records) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: records parameter is nil", __PRETTY_FUNCTION__];
     }
@@ -355,7 +355,7 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     return data;
 }
 
-+ (NSInteger)writeCSVRecords:(NSArray *)records toStream:(NSOutputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)outError {
++ (NSInteger)writeCSVRecords:(NSArray<NSArray<NSString *> *> *)records toStream:(NSOutputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)outError {
     if (!records) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: records parameter is nil", __PRETTY_FUNCTION__];
     }
@@ -384,7 +384,7 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
                 result += bytesWritten;
             }
         }
-        NSArray *fields = records[i];
+        NSArray<NSString *> *fields = records[i];
         NSError *error = nil;
         NSInteger bytesWritten = __GSCSVWriteRecord(stream, fields, encoding, opt, &error);
         if (bytesWritten < 0) {
@@ -399,7 +399,7 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     return result;
 }
 
-+ (nullable NSArray *)CSVRecordsWithData:(NSData *)data encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)outError {
++ (nullable NSArray<NSArray<NSString *> *> *)CSVRecordsWithData:(NSData *)data encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)outError {
     if (!data) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: data parameter is nil", __PRETTY_FUNCTION__];
     }
@@ -414,11 +414,11 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     }
     NSScanner *scanner = [[NSScanner alloc] initWithString:string];
     scanner.charactersToBeSkipped = nil;
-    NSMutableArray *records = [NSMutableArray new];
+    NSMutableArray<NSArray<NSString *> *> *records = [NSMutableArray new];
     NSError *error = nil;
     do {
         @autoreleasepool {
-            NSArray *fields = nil;
+            NSArray<NSString *> *fields = nil;
             if (!__GSCSVScanRecord(scanner, opt, &fields, &error)) {
                 break;
             }
@@ -448,7 +448,7 @@ NSString * const GSCSVErrorDomain = @"GSCSVErrorDomain";
     }
 }
 
-+ (nullable NSArray *)CSVRecordsWithStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)outError {
++ (nullable NSArray<NSArray<NSString *> *> *)CSVRecordsWithStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)outError {
     if (!stream) {
         [NSException raise:NSInvalidArgumentException format:@"*** %s: stream parameter is nil", __PRETTY_FUNCTION__];
     }

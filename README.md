@@ -2,13 +2,13 @@ GSCSVSerialization
 ==================
 [![Build Status](https://travis-ci.org/GyazSquare/GSCSVSerialization.svg?branch=master)](https://travis-ci.org/GyazSquare/GSCSVSerialization)
 
-GSCSVSerialization is an Objective-C CSV parser for iOS and OS X.
+GSCSVSerialization is an Objective-C CSV parser for iOS, OS X and watchOS.
 
 ## Requirements
 
-* Xcode 6.3 or later
-* Base SDK: iOS 8.3 / OS X 10.10 or later
-* Deployment Target: iOS 5.0 / OS X 10.6 or later
+* Xcode 7 or later
+* Base SDK: iOS 9.0 / OS X 10.11 / watchOS 2.0 or later
+* Deployment Target: iOS 5.0 / OS X 10.6 / watchOS 2.0 or later
 
 ## Installation
 
@@ -24,7 +24,7 @@ pod 'GSCSVSerialization'
 
 Install the pod:
 
-```sh
+```shell
 $ pod install
 ```
 
@@ -32,7 +32,7 @@ $ pod install
 
 Check out the source:
 
-```sh
+```shell
 $ git clone https://github.com/GyazSquare/GSCSVSerialization.git
 ```
 
@@ -43,13 +43,13 @@ $ git clone https://github.com/GyazSquare/GSCSVSerialization.git
 GSCSVSerialization can create a CSV object from a [RFC 4180](https://tools.ietf.org/html/rfc4180)-compliant CSV data by using the following methods:
 
 ```objective-c
-+ (NSArray *)CSVRecordsWithData:(NSData *)data encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)error;
-+ (NSArray *)CSVRecordsWithStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)error;
++ (nullable NSArray<NSArray<NSString *> *> *)CSVRecordsWithData:(NSData *)data encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)error;
++ (nullable  NSArray<NSArray<NSString *> *> *)CSVRecordsWithStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVReadingOptions)opt error:(NSError **)error;
 ```
 
 For example, if you parse CSV data below,
 
-```csv
+```text
 aaa,bbb,ccc
 zzz,yyy,xxx
 ```
@@ -68,8 +68,8 @@ you can get a CSV object like this:
 GSCSVSerialization can create CSV data from a CSV object by using the following methods:
 
 ```objective-c
-+ (NSData *)dataWithCSVRecords:(NSArray *)records encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)error;
-+ (NSInteger)writeCSVRecords:(NSArray *)records toStream:(NSOutputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)error;
++ (nullable NSData *)dataWithCSVRecords:(NSArray<NSArray<NSString *> *> *)records encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)error;
++ (NSInteger)writeCSVRecords:(NSArray<NSArray<NSString *> *> *)records toStream:(NSOutputStream *)stream encoding:(NSStringEncoding)encoding options:(GSCSVWritingOptions)opt error:(NSError **)error;
 ```
 
 A `records` object is a two-dimensional array containing `field` strings. You should check whether the input will produce valid CSV data before calling these methods by using `isValidCSVRecords:`.
