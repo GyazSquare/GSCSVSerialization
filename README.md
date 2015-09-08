@@ -2,7 +2,7 @@ GSCSVSerialization
 ==================
 [![Build Status](https://travis-ci.org/GyazSquare/GSCSVSerialization.svg?branch=master)](https://travis-ci.org/GyazSquare/GSCSVSerialization)
 
-GSCSVSerialization is an Objective-C CSV parser for iOS and OS X.
+GSCSVSerialization is an Objective-C CSV parser for iOS, OS X and watchOS.
 
 ## Requirements
 
