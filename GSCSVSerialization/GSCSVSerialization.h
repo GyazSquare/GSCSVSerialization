@@ -22,8 +22,8 @@ typedef NS_ENUM(NSInteger, GSCSVErrorCode) {
 };
 
 typedef NS_OPTIONS(NSUInteger, GSCSVReadingOptions) {
-    GSCSVReadingMutableContainers = (1UL << 0),
-    GSCSVReadingMutableLeaves = (1UL << 1)
+    GSCSVReadingMutableContainers NS_SWIFT_UNAVAILABLE("Mutability options not available") = (1UL << 0),
+    GSCSVReadingMutableLeaves NS_SWIFT_UNAVAILABLE("Mutability options not available") = (1UL << 1)
 };
 
 typedef NS_OPTIONS(NSUInteger, GSCSVWritingOptions) {
