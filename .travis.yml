@@ -1,8 +1,11 @@
 language: objective-c
-osx_image: xcode7.3
+osx_image: xcode8.1
 before_install:
   - gem install xcpretty
 before_script:
   - set -o pipefail
 script:
-  - xcodebuild -project GSCSVSerialization.xcodeproj -scheme GSCSVSerialization -destination 'platform=iOS Simulator,name=iPhone 6s' -sdk iphonesimulator test | xcpretty -c
+  - xcodebuild -project GSCSVSerialization.xcodeproj -scheme GSCSVSerialization -destination 'platform=iOS Simulator,name=iPhone 7' -sdk iphonesimulator test | xcpretty -c
+notifications:
+  slack:
+    secure: tYC4ZLVY8Tl9J/hRLhzWoWlxBTFCraJp2Jw45NTq7st6Q+b044yV9rhXiroPUZmeBBq7yzbopXVhj+D+bj0Py2470latRXehMyad8HN1/Tzad+0aIMYLs8Q+2tbcdSacLa/dcptSm6vOe5uEXOqGN/J7F0ifyZG+KjLJr2/wVUxpPdP2uqjSTrjLQwNHDylxz2s8G4Hkt4MB0Txk+zifFFmd4mm26waTBORsIjgBUUOKqSqByKK4Y81RuQx2E0k1/6dYnsok2iolG+SgsF+WA8OYZ2s+GLeeN+EdXn15jJePWBBTdKkSCcOsBisJqdXJl3Team6+N0fTS7etui6dM/CWfghqpLLeYA9EEmgeC4ufDPAv0tX1H8e0xCwPLaXj3K3egU08T9msbtW38qK6zuDxWClF5kbZHcVW+I/pCv3AziJjYLinEP52O+sIsMIHCFo8nNGYmeCmGGDqy+RnbUsbTrNHSAEQAc60h7eQsHQGiSeRPEXeCrWI1AwGXAAH5+DnyF3pB4WSjVI7UoAjKlbklnXEifyiMQhIyMzSieKsWJw7AjsKwEuODVPllfhaY0giYRkmCFS6/SwIw667SuO82xEAaTCNfn7bqY48nirfoY+pspuHs9e4sEkWNlhjHT9gj2Y41PFBZXFdFGQD4IlCIsU5tqkoiXYrpyD+g4s=
