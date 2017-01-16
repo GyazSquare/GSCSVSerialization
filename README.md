@@ -2,6 +2,8 @@ GSCSVSerialization
 ==================
 [![Build Status](https://travis-ci.org/GyazSquare/GSCSVSerialization.svg?branch=master)](https://travis-ci.org/GyazSquare/GSCSVSerialization)
 
+**Important:** This library is deprecated, it is recommended you look at [GSLCSVSerialization](https://github.com/GyazSquare/GSLCSVSerialization).
+
 GSCSVSerialization is an Objective-C CSV parser for iOS, OS X, watchOS and tvOS.
 
 ## Requirements
